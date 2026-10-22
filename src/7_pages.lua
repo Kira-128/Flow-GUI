@@ -1,10 +1,14 @@
 --[[
 ============================================================
-  [7] PAGES — Command An Army (FINAL V3)
+  [7] PAGES — Command An Army (FINAL V4)
 ============================================================
 ]]
 
 local S = _G.STHAIN
+
+-- ✅ SATPAM ANTI-CRASH (Tunggu Config dari repo Logic siap)
+repeat task.wait() until S.Config and S.Config.Combat 
+
 local C = S.Theme.Colors
 local I = S.Theme.Icons
 local F = S.Theme.Font
@@ -465,7 +469,6 @@ local CC = S.Config.Combat
 local SS = S.Config.Spawn
 
 local autoCombat = S.Comp.makeSection(pages["Combat"], "Auto Combat", false)
--- ✅ FIX: Pake CC.AutoAttack == true biar sinkron sama config
 S.Comp.makeToggle(autoCombat, "Auto Attack (V)", CC.AutoAttack == true, function(v) CC.AutoAttack = v save() end)
 S.Comp.makeToggle(autoCombat, "Auto Rush (B)", CC.AutoRush == true, function(v) CC.AutoRush = v save() end)
 S.Comp.makeToggle(autoCombat, "Auto Follow (C)", CC.AutoFollow == true, function(v) CC.AutoFollow = v save() end)
@@ -485,7 +488,6 @@ spawnLayout.Padding = UDim.new(0, 6)
 spawnLayout.SortOrder = Enum.SortOrder.LayoutOrder
 spawnLayout.Parent = spawnContent
 
--- ✅ 4 SLOT UNIT
 local spawnDropdown = makeDynamicDropdown(spawnContent, "Unit Slot", {"1", "2", "3", "4"}, function(v)
     SS.UnitSlot = tonumber(v) or 1
     save()
@@ -495,7 +497,6 @@ makeSectionButton(spawnContent, "Spawn Unit", function()
     if _G.STHAIN.SpawnUnit then _G.STHAIN.SpawnUnit(SS.UnitSlot) end
 end)
 
--- ✅ TOGGLE AUTO SPAWN (Ubah nama jadi BETA)
 S.Comp.makeToggle(spawnContent, "Auto Respawn [BETA]", SS.AutoSpawn == true, function(v) 
     SS.AutoSpawn = v 
     save() 
@@ -652,7 +653,6 @@ S.Comp.makeToggle(utilityContent, "No Clip", MM.Noclip == true, function(v) MM.N
 S.Comp.makeToggle(utilityContent, "Fly", MM.Fly == true, function(v) MM.Fly = v save() end)
 S.Comp.makeToggle(utilityContent, "Infinite Jump", MM.InfJump == true, function(v) MM.InfJump = v save() end)
 S.Comp.makeInput(utilityContent, "Fly Speed", MM.FlySpeed, function(v) MM.FlySpeed = v save() end)
--- ✅ Hip Height Dihapus
 S.Comp.makeInput(utilityContent, "Jump Power", MM.JumpPower, function(v) MM.JumpPower = v save() end)
 S.Comp.makeToggle(utilityContent, "Anti-AFK", XX.AntiAFK == true, function(v) XX.AntiAFK = v save() end)
 task.defer(function() task.wait(0.1) forceFixSection(utilityContent) end)
@@ -824,13 +824,11 @@ if S.GUI.SearchBox then
                     end
 
                     if matchFound then
-                        -- ✅ FIX: Pindahin halaman & update judul
                         switchPage(pageName)
                         if S.GUI.ContentTitle then 
                             S.GUI.ContentTitle.Text = pageName 
                         end
                         
-                        -- ✅ FIX: Update visual tab di sidebar
                         for _, t in pairs(tabs) do
                             if t.text.Text == pageName then
                                 t.btn.BackgroundColor3 = S.Theme.Colors.bg3
