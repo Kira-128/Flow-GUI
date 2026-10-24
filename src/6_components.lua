@@ -1,12 +1,9 @@
 --[[
 ============================================================
-  [6] COMPONENTS (Flow Hub Style v5)
-  - Section = 1 card solid (bg3)
-  - Header + items nyatu dalam card yang sama
-  - Divider tipis 1px antar item
-  - Item transparan (no bg)
-  - makeToggle return setState (buat exclusive toggle)
-  - Fix recalc collapsed = 32px
+  [6] COMPONENTS (Flow Hub v2.1)
+  - Arrow di kanan
+  - Accent bar dihapus
+  - Animasi instan (tanpa Tween)
 ============================================================
 ]]
 
@@ -19,7 +16,7 @@ local Comp = {}
 local CARD_PADDING = 6         -- gap antar section
 local CARD_BG = C.bg3          -- warna card solid
 local CARD_TRANS = 0.15        -- transparency card
-local DIVIDER_TRANS = 0.6      -- transparency divider antar item
+local DIVIDER_TRANS = 0.8      -- transparency divider antar item
 local ITEM_H = 34              -- tinggi 1 item
 local HEADER_H = 32            -- tinggi header section
 
@@ -30,7 +27,6 @@ local function recalcSection(card, content)
     if not card or not card.Parent then return end
 
     if not content.Visible then
-        -- collapsed: cuma header
         card.Size = UDim2.new(1, 0, 0, HEADER_H)
         return
     end
@@ -41,12 +37,11 @@ local function recalcSection(card, content)
         totalH = layout.AbsoluteContentSize.Y
     end
 
-    -- header + content + padding
     card.Size = UDim2.new(1, 0, 0, HEADER_H + totalH + 8)
 end
 
 -- ============================================================
--- HELPER: Auto recalc saat child ditambahin (cuma kalau visible)
+-- HELPER: Auto recalc saat child ditambahin
 -- ============================================================
 local function hookAutoRecalc(card, content)
     content.ChildAdded:Connect(function()
@@ -65,7 +60,8 @@ end
 local function makeDivider(parent)
     local d = Instance.new("Frame")
     d.Name = "Divider"
-    d.Size = UDim2.new(1, -20, 0, 1)
+    d.Size = UDim2.new(1, -24, 0, 1)
+    d.Position = UDim2.new(0, 12, 0, 0)
     d.BackgroundColor3 = C.stroke
     d.BackgroundTransparency = DIVIDER_TRANS
     d.BorderSizePixel = 0
@@ -74,7 +70,7 @@ local function makeDivider(parent)
 end
 
 -- ============================================================
--- TOGGLE (return setState buat external control)
+-- TOGGLE
 -- ============================================================
 function Comp.makeToggle(parent, name, default, callback)
     local f = Instance.new("Frame")
@@ -115,10 +111,6 @@ function Comp.makeToggle(parent, name, default, callback)
 
     local state = default
 
-    -- ============================================================
-    -- setState: dipanggil dari luar (exclusive logic)
-    -- skipCallback = true kalau cuma update visual, ga trigger logic
-    -- ============================================================
     local function setState(newState, skipCallback)
         if state == newState then return end
         state = newState
@@ -296,7 +288,7 @@ function Comp.makeDropdown(parent, name, options, callback)
 end
 
 -- ============================================================
--- SECTION: 1 card solid
+-- SECTION (FIXED v2.1: Tanpa Garis Accent & Tanpa Animasi)
 -- ============================================================
 function Comp.makeSection(parent, title, defaultOpen)
     -- CARD UTAMA
@@ -322,20 +314,10 @@ function Comp.makeSection(parent, title, defaultOpen)
     header.ZIndex = 2
     header.Parent = card
 
-    local arrow = Instance.new("TextLabel")
-    arrow.Size = UDim2.new(0, 16, 1, 0)
-    arrow.Position = UDim2.new(0, 10, 0, 0)
-    arrow.Text = defaultOpen and "▼" or "▶"
-    arrow.TextColor3 = C.accent
-    arrow.TextSize = 10
-    arrow.Font = F.bold
-    arrow.BackgroundTransparency = 1
-    arrow.ZIndex = 3
-    arrow.Parent = header
-
+    -- JUDUL SECTION (Langsung rata kiri)
     local titleLbl = Instance.new("TextLabel")
-    titleLbl.Size = UDim2.new(1, -30, 1, 0)
-    titleLbl.Position = UDim2.new(0, 28, 0, 0)
+    titleLbl.Size = UDim2.new(1, -50, 1, 0)
+    titleLbl.Position = UDim2.new(0, 12, 0, 0) -- Position 12 (rata kiri)
     titleLbl.Text = title
     titleLbl.TextColor3 = C.text
     titleLbl.TextSize = 11
@@ -345,7 +327,20 @@ function Comp.makeSection(parent, title, defaultOpen)
     titleLbl.ZIndex = 3
     titleLbl.Parent = header
 
-    -- CONTENT (nyatu di dalam card)
+    -- PANAH SEGITIGA (Mentok Kanan)
+    local arrow = Instance.new("TextLabel")
+    arrow.Size = UDim2.new(0, 16, 1, 0)
+    arrow.Position = UDim2.new(1, -26, 0, 0)
+    arrow.AnchorPoint = Vector2.new(1, 0) 
+    arrow.Text = defaultOpen and "▼" or "▶"
+    arrow.TextColor3 = C.textDim
+    arrow.TextSize = 10
+    arrow.Font = F.bold
+    arrow.BackgroundTransparency = 1
+    arrow.ZIndex = 3
+    arrow.Parent = header
+
+    -- CONTENT
     local content = Instance.new("Frame")
     content.Name = "Content"
     content.Size = UDim2.new(1, 0, 0, 0)
@@ -369,6 +364,7 @@ function Comp.makeSection(parent, title, defaultOpen)
     local isOpen = defaultOpen
     hookAutoRecalc(card, content)
 
+    -- LOGIKA KLIK HEADER (TANPA ANIMASI)
     header.MouseButton1Click:Connect(function()
         isOpen = not isOpen
         arrow.Text = isOpen and "▼" or "▶"
@@ -379,6 +375,7 @@ function Comp.makeSection(parent, title, defaultOpen)
         end)
     end)
 
+    -- Setup awal kalau defaultOpen = true
     task.defer(function()
         task.wait(0.15)
         if defaultOpen then recalcSection(card, content) end
