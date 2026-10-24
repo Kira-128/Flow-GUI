@@ -1,14 +1,10 @@
 --[[
 ============================================================
-  [5] GUI (Flow Hub Style v10.2)
-  - Header: Flow [icon transparan] | Command An Army [− mint]
-  - Garis 1 full width bawah header
-  - Search "Search feature.."
-  - Accent line ▎ vertikal pemisah search & title
-  - Garis 2 di bawah title
-  - Sidebar & content panel TRANSPARAN
-  - ContentScroll = Frame biasa (container), bukan ScrollingFrame
-  - Fix ruang kosong (PaddingTop=0, VerticalAlignment=Top)
+  [5] GUI (Flow Hub v2.2)
+  - Size: 460x320
+  - Fix gethui crash on mobile
+  - Anti-Double GUI
+  - Separate Header for drag handle
 ============================================================
 ]]
 
@@ -17,11 +13,23 @@ local C = S.Theme.Colors
 local I = S.Theme.Icons
 local F = S.Theme.Font
 
+-- FIX 1: Anti-Double GUI & Anti-Crash gethui
+local parentGui
+local ok, hui = pcall(function() return gethui and gethui() end)
+if ok and hui then
+    parentGui = hui
+else
+    parentGui = game:GetService("CoreGui")
+end
+
+local oldGui = parentGui:FindFirstChild("FlowHub")
+if oldGui then oldGui:Destroy() end
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "FlowHub"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+gui.Parent = parentGui
 
 -- ============================================================
 -- FLOAT BUTTON
@@ -74,9 +82,10 @@ floatBtn.InputChanged:Connect(function(input)
 end)
 
 -- ============================================================
--- MAIN FRAME
+-- MAIN FRAME (Size: 460x320)
 -- ============================================================
 local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 460, 0, 320)
 mainFrame.Position = UDim2.new(0.5, -230, 0.5, -160)
 mainFrame.BackgroundColor3 = C.panel
@@ -94,15 +103,17 @@ mStroke.Transparency = 0.3
 mStroke.Parent = mainFrame
 
 -- ============================================================
--- HEADER
+-- HEADER (Drag Handle)
 -- ============================================================
 local HEADER_H = 36
 
 local header = Instance.new("Frame")
+header.Name = "Header"
 header.Size = UDim2.new(1, 0, 0, HEADER_H)
 header.BackgroundColor3 = C.bg2
 header.BackgroundTransparency = 0.1
 header.BorderSizePixel = 0
+header.Active = true
 header.Parent = mainFrame
 Instance.new("UICorner", header).CornerRadius = UDim.new(0, 8)
 
@@ -279,8 +290,6 @@ contentPanel.BorderSizePixel = 0
 contentPanel.ClipsDescendants = true
 contentPanel.Parent = mainFrame
 
--- CONTAINER (Frame biasa, bukan ScrollingFrame)
--- 7_pages.lua bakal parent page (ScrollingFrame) ke sini
 local contentScroll = Instance.new("Frame")
 contentScroll.Name = "ContentScroll"
 contentScroll.Size = UDim2.new(1, 0, 1, 0)
@@ -297,6 +306,7 @@ S.GUI = {
     Screen = gui,
     FloatBtn = floatBtn,
     MainFrame = mainFrame,
+    Header = header,
     Sidebar = sidebar,
     Content = contentPanel,
     ContentScroll = contentScroll,
