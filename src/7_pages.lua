@@ -643,7 +643,7 @@ local AA = S.Config.Automation or {}
 
 -- 1. SUMMON SECTION
 local summonSection = S.Comp.makeSection(pages["Automation"], "Summon", false)
-S.Comp.makeToggle(summonSection, "Auto Summon (Direct)", AA.AutoSummon == true, function(v) 
+S.Comp.makeToggle(summonSection, "Auto Summon", AA.AutoSummon == true, function(v) 
     AA.AutoSummon = v 
     save() 
 end)
