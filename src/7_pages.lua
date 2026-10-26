@@ -1,12 +1,10 @@
 --[[
 ============================================================
-  [7] PAGES — Command An Army (v2.2 Automation Update)
+  [7] PAGES — Command An Army (v3.0 Final)
 ============================================================
 ]]
 
 local S = _G.STHAIN
-
--- ✅ SATPAM ANTI-CRASH (Tunggu Config dari repo Logic siap)
 repeat task.wait() until S.Config and S.Config.Combat 
 
 local C = S.Theme.Colors
@@ -645,7 +643,7 @@ local AA = S.Config.Automation or {}
 
 -- 1. SUMMON SECTION
 local summonSection = S.Comp.makeSection(pages["Automation"], "Summon", false)
-S.Comp.makeToggle(summonSection, "Auto Summon", AA.AutoSummon == true, function(v) 
+S.Comp.makeToggle(summonSection, "Auto Summon (Direct)", AA.AutoSummon == true, function(v) 
     AA.AutoSummon = v 
     save() 
 end)
@@ -677,9 +675,9 @@ S.Comp.makeToggle(evolveSection, "Auto Evolve", AA.AutoEvolve == true, function(
 end)
 task.defer(function() task.wait(0.1) forceFixSection(evolveSection) end)
 
--- 4. REWARDS SECTION
+-- 4. REWARDS SECTION (Daily Login digabung ke Quest)
 local rewardSection = S.Comp.makeSection(pages["Automation"], "Rewards", false)
-S.Comp.makeToggle(rewardSection, "Auto Reward (Daily/Weekly)", AA.AutoReward == true, function(v) 
+S.Comp.makeToggle(rewardSection, "Auto Quest & Daily", AA.AutoReward == true, function(v) 
     AA.AutoReward = v 
     save() 
 end)
@@ -688,7 +686,7 @@ task.defer(function() task.wait(0.1) forceFixSection(rewardSection) end)
 -- 5. CLAIM CODE SECTION
 local codeSection = S.Comp.makeSection(pages["Automation"], "Claim Code", false)
 
--- Input Code Container
+-- Input Code
 local codeInputContainer = Instance.new("Frame")
 codeInputContainer.Name = "CodeInputContainer"
 codeInputContainer.Size = UDim2.new(1, 0, 0, 34)
@@ -710,22 +708,38 @@ codeBox.ClearTextOnFocus = false
 codeBox.Parent = codeInputContainer
 Instance.new("UICorner", codeBox).CornerRadius = UDim.new(0, 4)
 
--- Dropdown Dynamic (Available Codes)
--- Nanti lu bisa update opsi dropdown ini pake: codeDropdown.UpdateOptions({"CODE1", "CODE2"})
+-- Dropdown Available Codes (Otomatis Fetch)
 local codeDropdown = makeDynamicDropdown(codeSection, "Available Codes", {"Fetching..."}, function(val)
-    codeBox.Text = val
+    if val ~= "Fetching..." and val ~= "None" then
+        codeBox.Text = val
+    end
+end)
+
+-- Auto Fetch pas halaman dibuka
+task.spawn(function()
+    task.wait(2) -- Tunggu UI ready
+    if _G.STHAIN.FetchCodesSmart then
+        local codes = _G.STHAIN.FetchCodesSmart()
+        if codes and #codes > 0 then
+            codeDropdown.UpdateOptions(codes)
+        else
+            codeDropdown.UpdateOptions({"No Codes"})
+        end
+    end
 end)
 
 -- Button Claim
 S.Comp.makeButton(codeSection, "Claim Code", function()
     local code = codeBox.Text
-    if code ~= "" and _G.STHAIN.RedeemAllCodes then
-        -- Panggil fungsi redeem code lu di sini nanti
-        -- _G.STHAIN.RedeemAllCodes(code)
+    if code ~= "" and code ~= "Fetching..." and code ~= "None" then
+        local Remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Shared") and game:GetService("ReplicatedStorage").Shared:FindFirstChild("Remotes")
+        local RedeemCode = Remotes and Remotes:FindFirstChild("RedeemCode")
+        if RedeemCode then
+            pcall(function() RedeemCode:InvokeServer(code) end)
+        end
     end
 end)
 task.defer(function() task.wait(0.1) forceFixSection(codeSection) end)
-
 
 -- ============================================================
 -- TAB SETTINGS
@@ -820,12 +834,26 @@ end)
 task.defer(function() task.wait(0.1) forceFixSection(autoSaveSection) end)
 
 local configMgmt = S.Comp.makeSection(pages["Config"], "Config Management", false)
+
+-- Tombol 1
 S.Comp.makeButton(configMgmt, "Save Config Now", function()
     if _G.STHAIN.Utils and _G.STHAIN.Utils.SaveConfig then _G.STHAIN.Utils.SaveConfig() end
 end)
-S.Comp.makeButton(configMgmt, "Delete Config", function()
-    if _G.STHAIN.Utils and _G.STHAIN.Utils.DeleteConfig then _G.STHAIN.Utils.DeleteConfig() end
+
+-- Tombol 2
+S.Comp.makeButton(configMgmt, "Reset to Default", function()
+    if _G.STHAIN.Utils and _G.STHAIN.Utils.DeleteConfig then 
+        _G.STHAIN.Utils.DeleteConfig()
+    end
 end)
+
+-- Tombol 3
+S.Comp.makeButton(configMgmt, "Delete Config File", function()
+    if _G.STHAIN.Utils and _G.STHAIN.Utils.DeleteConfig then 
+        _G.STHAIN.Utils.DeleteConfig()
+    end
+end)
+
 task.defer(function() task.wait(0.1) forceFixSection(configMgmt) end)
 
 -- ============================================================
