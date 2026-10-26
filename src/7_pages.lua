@@ -677,7 +677,7 @@ task.defer(function() task.wait(0.1) forceFixSection(evolveSection) end)
 
 -- 4. REWARDS SECTION (Daily Login digabung ke Quest)
 local rewardSection = S.Comp.makeSection(pages["Automation"], "Rewards", false)
-S.Comp.makeToggle(rewardSection, "Auto Quest & Daily", AA.AutoReward == true, function(v) 
+S.Comp.makeToggle(rewardSection, "Auto Daily/Weekly Reward", AA.AutoReward == true, function(v) 
     AA.AutoReward = v 
     save() 
 end)
