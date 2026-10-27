@@ -1,7 +1,8 @@
 --[[
 ============================================================
-  [5] GUI (Flow Hub v2.2)
+  [5] GUI (Flow Hub v2.3)
   - Size: 460x320
+  - Float Button: Kotak Tumpul (Rounded Square)
   - Fix gethui crash on mobile
   - Anti-Double GUI
   - Separate Header for drag handle
@@ -32,20 +33,33 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = parentGui
 
 -- ============================================================
--- FLOAT BUTTON
+-- FLOAT BUTTON (Kotak Tumpul)
 -- ============================================================
 local floatBtn = Instance.new("TextButton")
+floatBtn.Name = "FloatBtn"
 floatBtn.Size = UDim2.new(0, 48, 0, 48)
 floatBtn.Position = UDim2.new(0, 30, 0.5, -24)
 floatBtn.Text = ""
-floatBtn.BackgroundTransparency = 1
+floatBtn.BackgroundColor3 = C.bg2
+floatBtn.BackgroundTransparency = 0.1
 floatBtn.BorderSizePixel = 0
 floatBtn.AutoButtonColor = false
 floatBtn.Parent = gui
 
+-- Bikin Sudut Tumpul (14px)
+Instance.new("UICorner", floatBtn).CornerRadius = UDim.new(0, 14)
+
+-- Garis Tepi Tipis
+local fStroke = Instance.new("UIStroke")
+fStroke.Color = C.stroke
+fStroke.Thickness = 1.5
+fStroke.Transparency = 0.3
+fStroke.Parent = floatBtn
+
 local fIcon = Instance.new("ImageLabel")
 fIcon.Name = "FloatLogo"
-fIcon.Size = UDim2.new(1, 0, 1, 0)
+fIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
+fIcon.Position = UDim2.new(0.2, 0, 0.2, 0)
 fIcon.BackgroundTransparency = 1
 fIcon.BorderSizePixel = 0
 fIcon.Image = I.logo
