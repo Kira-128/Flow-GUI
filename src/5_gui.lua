@@ -1,11 +1,9 @@
 --[[
 ============================================================
-  [5] GUI (Flow Hub v2.3)
+  [5] GUI (Flow Hub v2.4)
   - Size: 460x320
-  - Float Button: Kotak Tumpul (Rounded Square)
+  - Float Button: Kotak Tumpul + Icon Gede
   - Fix gethui crash on mobile
-  - Anti-Double GUI
-  - Separate Header for drag handle
 ============================================================
 ]]
 
@@ -56,10 +54,11 @@ fStroke.Thickness = 1.5
 fStroke.Transparency = 0.3
 fStroke.Parent = floatBtn
 
+-- Ikon (Dibesarin jadi 0.8)
 local fIcon = Instance.new("ImageLabel")
 fIcon.Name = "FloatLogo"
-fIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
-fIcon.Position = UDim2.new(0.2, 0, 0.2, 0)
+fIcon.Size = UDim2.new(0.8, 0, 0.8, 0)
+fIcon.Position = UDim2.new(0.1, 0, 0.1, 0)
 fIcon.BackgroundTransparency = 1
 fIcon.BorderSizePixel = 0
 fIcon.Image = I.logo
@@ -67,14 +66,17 @@ fIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
 fIcon.ScaleType = Enum.ScaleType.Fit
 fIcon.Parent = floatBtn
 
--- DRAG FLOAT BUTTON
-local dragging, dragStart, startPos
+-- DRAG FLOAT BUTTON (SMOOTH TOUCH)
+local dragging = false
+local dragStart, startPos
+
 floatBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
+    if input.UserInputType == Enum.UserInputType.MouseButton1 
     or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = floatBtn.Position
+        
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -82,16 +84,22 @@ floatBtn.InputBegan:Connect(function(input)
         end)
     end
 end)
-floatBtn.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement 
+    or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        floatBtn.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 
     or input.UserInputType == Enum.UserInputType.Touch then
-        if dragging then
-            local delta = input.Position - dragStart
-            floatBtn.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
-        end
+        dragging = false
     end
 end)
 
