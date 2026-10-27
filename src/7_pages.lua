@@ -1,6 +1,6 @@
 --[[
 ============================================================
-  [7] PAGES (Flow Hub v3.3)
+  [7] PAGES (Flow Hub v3.4)
 ============================================================
 ]]
 
@@ -331,6 +331,13 @@ end)
 task.defer(function() task.wait(0.1) forceFixSection(rewardSection) end)
 
 local codeSection = S.Comp.makeSection(pages["Automation"], "Claim Code", false)
+
+local codeDropdown = S.Comp.makeDropdown(codeSection, "Available Codes", {"Fetching..."}, function(val)
+    if val ~= "Fetching..." and val ~= "None" then
+        -- Optional: masukin ke textbox
+    end
+end)
+
 local codeBox = Instance.new("TextBox")
 codeBox.Size = UDim2.new(1, -24, 0, 24)
 codeBox.BackgroundColor3 = C.bg4
@@ -345,9 +352,22 @@ codeBox.ClearTextOnFocus = false
 codeBox.Parent = codeSection
 Instance.new("UICorner", codeBox).CornerRadius = UDim.new(0, 4)
 codeBox.Position = UDim2.new(0, 12, 0, 0)
+
+task.spawn(function()
+    task.wait(2)
+    if _G.STHAIN.FetchCodesSmart then
+        local codes = _G.STHAIN.FetchCodesSmart()
+        if codes and #codes > 0 then
+            codeDropdown.UpdateOptions(codes)
+        else
+            codeDropdown.UpdateOptions({"No Codes"})
+        end
+    end
+end)
+
 S.Comp.makeButton(codeSection, "Claim Code", function()
     local code = codeBox.Text
-    if code ~= "" then
+    if code ~= "" and code ~= "Fetching..." and code ~= "None" then
         local Remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Shared") and game:GetService("ReplicatedStorage").Shared:FindFirstChild("Remotes")
         local RedeemCode = Remotes and Remotes:FindFirstChild("RedeemCode")
         if RedeemCode then
@@ -452,11 +472,14 @@ local resetBtn = S.Comp.makeButton(configMgmt, "Reset to Default", function()
         resetBtn.Text = "Click Again to Confirm"
         resetBtn.BackgroundColor3 = Color3.fromRGB(255, 136, 0)
         resetBtn.BackgroundTransparency = 0.1
+        resetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
         task.delay(3, function()
             if resetBtn.Text == "Click Again to Confirm" then
                 resetBtn.Text = "Reset to Default"
                 resetBtn.BackgroundColor3 = C.bg4
                 resetBtn.BackgroundTransparency = 0.3
+                resetBtn.TextColor3 = C.text
             end
         end)
     elseif resetBtn.Text == "Click Again to Confirm" then
@@ -466,6 +489,7 @@ local resetBtn = S.Comp.makeButton(configMgmt, "Reset to Default", function()
         resetBtn.Text = "Reset to Default"
         resetBtn.BackgroundColor3 = C.bg4
         resetBtn.BackgroundTransparency = 0.3
+        resetBtn.TextColor3 = C.text
     end
 end)
 
@@ -474,11 +498,14 @@ local deleteBtn = S.Comp.makeButton(configMgmt, "Delete Config File", function()
         deleteBtn.Text = "Click Again to Confirm"
         deleteBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
         deleteBtn.BackgroundTransparency = 0.1
+        deleteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
         task.delay(3, function()
             if deleteBtn.Text == "Click Again to Confirm" then
                 deleteBtn.Text = "Delete Config File"
                 deleteBtn.BackgroundColor3 = C.bg4
                 deleteBtn.BackgroundTransparency = 0.3
+                deleteBtn.TextColor3 = C.text
             end
         end)
     elseif deleteBtn.Text == "Click Again to Confirm" then
@@ -488,6 +515,7 @@ local deleteBtn = S.Comp.makeButton(configMgmt, "Delete Config File", function()
         deleteBtn.Text = "Delete Config File"
         deleteBtn.BackgroundColor3 = C.bg4
         deleteBtn.BackgroundTransparency = 0.3
+        deleteBtn.TextColor3 = C.text
     end
 end)
 
