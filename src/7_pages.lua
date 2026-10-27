@@ -1,6 +1,6 @@
 --[[
 ============================================================
-  [7] PAGES (Flow Hub v3.4)
+  [7] PAGES — Command An Army (v3.1) 
 ============================================================
 ]]
 
@@ -26,6 +26,9 @@ local function save()
     end
 end
 
+-- ============================================================
+-- FORCE SECTION AUTO-SIZE
+-- ============================================================
 local function forceFixSection(sectionFrame)
     if not sectionFrame then return end
     pcall(function()
@@ -45,6 +48,9 @@ local function forceFixSection(sectionFrame)
     end)
 end
 
+-- ============================================================
+-- CREATE PAGE
+-- ============================================================
 local function createPage(name)
     local page = Instance.new("ScrollingFrame")
     page.Name = "Page_" .. name
@@ -87,6 +93,9 @@ local function switchPage(name)
     end
 end
 
+-- ============================================================
+-- MAKE TAB
+-- ============================================================
 local function makeTab(iconId, name)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -10, 0, 30)
@@ -151,10 +160,16 @@ local function makeTab(iconId, name)
     table.insert(tabs, {btn = btn, icon = ic, text = tx, bar = acc})
 end
 
+-- ============================================================
+-- HELPER BUTTON
+-- ============================================================
 local function makeSectionButton(parent, text, callback)
     return S.Comp.makeButton(parent, text, callback)
 end
 
+-- ============================================================
+-- BUAT PAGES + TABS
+-- ============================================================
 createPage("Combat")
 createPage("Esp")
 createPage("Teleport")
@@ -169,7 +184,9 @@ makeTab(I.automation, "Automation")
 makeTab(I.settings, "Settings")
 makeTab(I.config, "Config")
 
--- COMBAT
+-- ============================================================
+-- TAB COMBAT
+-- ============================================================
 local CC = S.Config.Combat
 local SS = S.Config.Spawn
 
@@ -206,7 +223,9 @@ S.Comp.makeInput(combatDelay, "Rush Delay", CC.RushDelay, function(v) CC.RushDel
 S.Comp.makeInput(combatDelay, "Follow Delay", CC.FollowDelay, function(v) CC.FollowDelay = v save() end)
 task.defer(function() task.wait(0.1) forceFixSection(combatDelay) end)
 
--- ESP
+-- ============================================================
+-- TAB ESP
+-- ============================================================
 local VV = S.Config.Visual
 
 local enableEsp = S.Comp.makeSection(pages["Esp"], "Enable Esp", false)
@@ -224,7 +243,9 @@ S.Comp.makeToggle(espObject, "Esp Supply", VV.ESPSupply == true, function(v) VV.
 S.Comp.makeToggle(espObject, "Esp Capture", VV.ESPCapture == true, function(v) VV.ESPCapture = v save() end)
 task.defer(function() task.wait(0.1) forceFixSection(espObject) end)
 
--- TELEPORT
+-- ============================================================
+-- TAB TELEPORT
+-- ============================================================
 local TT = S.Config.Teleport
 
 local tpCapture = S.Comp.makeSection(pages["Teleport"], "Capture Point", false)
@@ -271,6 +292,9 @@ S.Comp.makeButton(supplyOwnerSection, "TP Supply Owner", function()
 end)
 task.defer(function() task.wait(0.1) forceFixSection(supplyOwnerSection) end)
 
+-- ============================================================
+-- DYNAMIC DROPDOWN UPDATE LOOP
+-- ============================================================
 task.spawn(function()
     while task.wait(2) do
         if _G.STHAIN.GetSupplyList then
@@ -291,9 +315,12 @@ task.spawn(function()
     end
 end)
 
--- AUTOMATION
+-- ============================================================
+-- TAB AUTOMATION
+-- ============================================================
 local AA = S.Config.Automation or {}
 
+-- 1. SUMMON SECTION
 local summonSection = S.Comp.makeSection(pages["Automation"], "Summon", false)
 S.Comp.makeToggle(summonSection, "Auto Summon", AA.AutoSummon == true, function(v) 
     AA.AutoSummon = v 
@@ -309,6 +336,7 @@ S.Comp.makeInput(summonSection, "Keep Gems", AA.KeepGems or 0, function(v)
 end)
 task.defer(function() task.wait(0.1) forceFixSection(summonSection) end)
 
+-- 2. ASCEND SECTION
 local ascendSection = S.Comp.makeSection(pages["Automation"], "Ascend", false)
 S.Comp.makeToggle(ascendSection, "Auto Ascend", AA.AutoAscend == true, function(v) 
     AA.AutoAscend = v 
@@ -316,6 +344,7 @@ S.Comp.makeToggle(ascendSection, "Auto Ascend", AA.AutoAscend == true, function(
 end)
 task.defer(function() task.wait(0.1) forceFixSection(ascendSection) end)
 
+-- 3. EVOLVE SECTION
 local evolveSection = S.Comp.makeSection(pages["Automation"], "Evolve", false)
 S.Comp.makeToggle(evolveSection, "Auto Evolve", AA.AutoEvolve == true, function(v) 
     AA.AutoEvolve = v 
@@ -323,6 +352,7 @@ S.Comp.makeToggle(evolveSection, "Auto Evolve", AA.AutoEvolve == true, function(
 end)
 task.defer(function() task.wait(0.1) forceFixSection(evolveSection) end)
 
+-- 4. REWARDS SECTION
 local rewardSection = S.Comp.makeSection(pages["Automation"], "Rewards", false)
 S.Comp.makeToggle(rewardSection, "Auto Daily/Weekly Reward", AA.AutoReward == true, function(v) 
     AA.AutoReward = v 
@@ -330,14 +360,10 @@ S.Comp.makeToggle(rewardSection, "Auto Daily/Weekly Reward", AA.AutoReward == tr
 end)
 task.defer(function() task.wait(0.1) forceFixSection(rewardSection) end)
 
+-- 5. CLAIM CODE SECTION
 local codeSection = S.Comp.makeSection(pages["Automation"], "Claim Code", false)
 
-local codeDropdown = S.Comp.makeDropdown(codeSection, "Available Codes", {"Fetching..."}, function(val)
-    if val ~= "Fetching..." and val ~= "None" then
-        -- Optional: masukin ke textbox
-    end
-end)
-
+-- [FIX] TextBox Dipanggil Duluan biar di Atas
 local codeBox = Instance.new("TextBox")
 codeBox.Size = UDim2.new(1, -24, 0, 24)
 codeBox.BackgroundColor3 = C.bg4
@@ -352,6 +378,13 @@ codeBox.ClearTextOnFocus = false
 codeBox.Parent = codeSection
 Instance.new("UICorner", codeBox).CornerRadius = UDim.new(0, 4)
 codeBox.Position = UDim2.new(0, 12, 0, 0)
+
+-- [FIX] Dropdown Dipanggil Kedua biar di Bawah
+local codeDropdown = S.Comp.makeDropdown(codeSection, "Available Codes", {"Fetching..."}, function(val)
+    if val ~= "Fetching..." and val ~= "None" then
+        codeBox.Text = val
+    end
+end)
 
 task.spawn(function()
     task.wait(2)
@@ -377,7 +410,9 @@ S.Comp.makeButton(codeSection, "Claim Code", function()
 end)
 task.defer(function() task.wait(0.1) forceFixSection(codeSection) end)
 
--- SETTINGS
+-- ============================================================
+-- TAB SETTINGS
+-- ============================================================
 local MM = S.Config.Movement
 local XX = S.Config.Misc
 
@@ -455,7 +490,9 @@ S.Comp.makeButton(serverContent, "Server Hop (Find Small Server)", function()
 end)
 task.defer(function() task.wait(0.1) forceFixSection(serverContent) end)
 
--- CONFIG
+-- ============================================================
+-- TAB CONFIG
+-- ============================================================
 local cfg = S.Config.Config
 
 local autoSaveSection = S.Comp.makeSection(pages["Config"], "Auto Save", false)
@@ -467,6 +504,7 @@ task.defer(function() task.wait(0.1) forceFixSection(autoSaveSection) end)
 
 local configMgmt = S.Comp.makeSection(pages["Config"], "Config Management", false)
 
+-- Tombol Reset (Oranye + Confirm)
 local resetBtn = S.Comp.makeButton(configMgmt, "Reset to Default", function()
     if resetBtn.Text == "Reset to Default" then
         resetBtn.Text = "Click Again to Confirm"
@@ -493,6 +531,7 @@ local resetBtn = S.Comp.makeButton(configMgmt, "Reset to Default", function()
     end
 end)
 
+-- Tombol Delete (Merah + Confirm)
 local deleteBtn = S.Comp.makeButton(configMgmt, "Delete Config File", function()
     if deleteBtn.Text == "Delete Config File" then
         deleteBtn.Text = "Click Again to Confirm"
@@ -521,7 +560,9 @@ end)
 
 task.defer(function() task.wait(0.1) forceFixSection(configMgmt) end)
 
--- DRAG
+-- ============================================================
+-- DRAG MAIN FRAME (Pakai Header)
+-- ============================================================
 local mainDrag, mainStart, mainPos
 S.GUI.Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -545,7 +586,9 @@ S.GUI.Header.InputEnded:Connect(function(input)
     end
 end)
 
--- MINIMIZE
+-- ============================================================
+-- MINIMIZE / OPEN
+-- ============================================================
 switchPage("Combat")
 
 for _, t in pairs(tabs) do
@@ -572,7 +615,9 @@ end)
 S.GUI.MainFrame.Visible = true
 S.GUI.FloatBtn.Visible = false
 
--- SEARCH
+-- ============================================================
+-- SEARCH FEATURE
+-- ============================================================
 if S.GUI.SearchBox then
     S.GUI.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
         local query = string.lower(S.GUI.SearchBox.Text)
