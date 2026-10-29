@@ -1,6 +1,6 @@
 --[[
 ============================================================
-  [7] PAGES — Command An Army (v3.1) 
+  [7] PAGES — Command An Army (v3.2)
 ============================================================
 ]]
 
@@ -363,25 +363,14 @@ task.defer(function() task.wait(0.1) forceFixSection(rewardSection) end)
 -- 5. CLAIM CODE SECTION
 local codeSection = S.Comp.makeSection(pages["Automation"], "Claim Code", false)
 
--- [FIX] TextBox Dipanggil Duluan biar di Atas
-local codeBox = Instance.new("TextBox")
-codeBox.Size = UDim2.new(1, -24, 0, 24)
-codeBox.BackgroundColor3 = C.bg4
-codeBox.BorderSizePixel = 0
-codeBox.Text = ""
-codeBox.PlaceholderText = "Enter A Code..."
-codeBox.TextColor3 = C.text
-codeBox.PlaceholderColor3 = C.textDim2
-codeBox.TextSize = 11
-codeBox.Font = F.norm
-codeBox.ClearTextOnFocus = false
-codeBox.Parent = codeSection
-Instance.new("UICorner", codeBox).CornerRadius = UDim.new(0, 4)
-codeBox.Position = UDim2.new(0, 12, 0, 0)
+-- TextBox pake makeTextInput (Simetris sama Dropdown)
+local codeBox = S.Comp.makeTextInput(codeSection, "Enter Code", "", "Enter A Code...", function(v)
+    -- callback opsional kalau user selesai ngetik
+end)
 
--- [FIX] Dropdown Dipanggil Kedua biar di Bawah
+-- Dropdown
 local codeDropdown = S.Comp.makeDropdown(codeSection, "Available Codes", {"Fetching..."}, function(val)
-    if val ~= "Fetching..." and val ~= "None" then
+    if val ~= "Fetching..." and val ~= "None" and val ~= "No Codes" then
         codeBox.Text = val
     end
 end)
@@ -398,14 +387,16 @@ task.spawn(function()
     end
 end)
 
+-- Tombol Claim Code (reset TextBox setelah claim)
 S.Comp.makeButton(codeSection, "Claim Code", function()
     local code = codeBox.Text
-    if code ~= "" and code ~= "Fetching..." and code ~= "None" then
+    if code ~= "" and code ~= "Enter A Code..." and code ~= "Fetching..." and code ~= "None" and code ~= "No Codes" then
         local Remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Shared") and game:GetService("ReplicatedStorage").Shared:FindFirstChild("Remotes")
         local RedeemCode = Remotes and Remotes:FindFirstChild("RedeemCode")
         if RedeemCode then
             pcall(function() RedeemCode:InvokeServer(code) end)
         end
+        codeBox.Text = "" -- Reset ke placeholder
     end
 end)
 task.defer(function() task.wait(0.1) forceFixSection(codeSection) end)
