@@ -1,6 +1,6 @@
 --[[
 ============================================================
-  [6] COMPONENTS (Flow Hub v2.9)
+  [6] COMPONENTS (Flow Hub v3.0)
 ============================================================
 ]]
 
@@ -103,7 +103,7 @@ function Comp.makeToggle(parent, name, default, callback)
 end
 
 -- ============================================================
--- INPUT
+-- INPUT (Angka — tetep kayak v2.9)
 -- ============================================================
 function Comp.makeInput(parent, name, default, callback)
     local f = Instance.new("Frame")
@@ -141,6 +141,52 @@ function Comp.makeInput(parent, name, default, callback)
         local v = tonumber(b.Text)
         if v then pcall(callback, v) else b.Text = tostring(default) end
     end)
+end
+
+-- ============================================================
+-- TEXT INPUT (BARU v3.0 — bebas teks, simetris sama dropdown)
+-- ============================================================
+function Comp.makeTextInput(parent, name, default, placeholder, callback)
+    local f = Instance.new("Frame")
+    f.Name = "TextInput_" .. name
+    f.Size = UDim2.new(1, 0, 0, ITEM_H)
+    f.BackgroundTransparency = 1
+    f.BorderSizePixel = 0
+    f.Parent = parent
+
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(0.5, -12, 1, 0)
+    l.Position = UDim2.new(0, 12, 0, 0)
+    l.Text = name
+    l.TextColor3 = C.text
+    l.TextSize = 11
+    l.Font = F.norm
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.BackgroundTransparency = 1
+    l.Parent = f
+
+    local b = Instance.new("TextBox")
+    b.Name = "TextBox"
+    b.Size = UDim2.new(0, 130, 0, 22)          -- SAMA persis kayak dropdown selected
+    b.Position = UDim2.new(1, -142, 0.5, -11)  -- SAMA persis kayak dropdown selected
+    b.Text = tostring(default or "")
+    b.PlaceholderText = placeholder or ""
+    b.PlaceholderColor3 = C.textDim2
+    b.TextColor3 = C.text
+    b.TextSize = 11
+    b.Font = F.norm
+    b.BackgroundColor3 = C.bg4
+    b.BorderSizePixel = 0
+    b.ClearTextOnFocus = false
+    b.Parent = f
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 4)
+
+    b.FocusLost:Connect(function()
+        pcall(callback, b.Text)
+    end)
+
+    -- return TextBox, biar bisa diakses .Text dari luar
+    return b
 end
 
 -- ============================================================
