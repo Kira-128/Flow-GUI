@@ -1,6 +1,6 @@
 --[[
 ============================================================
-  [3] THEME — Flow Hub (Mint Accent) v2.2
+  [3] THEME — Flow Hub (Mint Accent) v3.1
 ============================================================
 ]]
 
@@ -35,6 +35,7 @@ local Theme = {
         teleport   = "rbxassetid://90293255250749",
         search     = "rbxassetid://72296609649861",
         automation = "rbxassetid://137660494219613",
+        afk        = "rbxassetid://73746161985",
 
         logo     = "rbxassetid://101516376369531",
         icon     = "rbxassetid://80944443292236",
