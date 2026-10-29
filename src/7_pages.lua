@@ -1,6 +1,6 @@
 --[[
 ============================================================
-  [7] PAGES — Command An Army (v3.1) 
+  [7] PAGES — Command An Army (v3.2)
 ============================================================
 ]]
 
@@ -158,6 +158,13 @@ local function makeTab(iconId, name)
     end)
 
     table.insert(tabs, {btn = btn, icon = ic, text = tx, bar = acc})
+end
+
+-- ============================================================
+-- HELPER BUTTON
+-- ============================================================
+local function makeSectionButton(parent, text, callback)
+    return S.Comp.makeButton(parent, text, callback)
 end
 
 -- ============================================================
@@ -356,29 +363,12 @@ task.defer(function() task.wait(0.1) forceFixSection(rewardSection) end)
 -- 5. CLAIM CODE SECTION
 local codeSection = S.Comp.makeSection(pages["Automation"], "Claim Code", false)
 
--- ========================================================
--- KOTAK TEXTBOX (DISAMAIN SAMA LEBAR TOMBOL CLAIM CODE)
--- ========================================================
-local codeBox = Instance.new("TextBox")
-codeBox.Name = "CodeBox"
--- Ukuran 1, -12 dan posisi 0, 6 itu RUMUS ASLI TOMBOL (Full-Width)
-codeBox.Size = UDim2.new(1, -12, 0, 28)         
-codeBox.Position = UDim2.new(0, 6, 0, 4)         
-codeBox.BackgroundColor3 = C.bg4
-codeBox.BorderSizePixel = 0
-codeBox.Text = ""
-codeBox.PlaceholderText = "Enter A Code..."
-codeBox.TextColor3 = C.text
-codeBox.PlaceholderColor3 = C.textDim2
-codeBox.TextSize = 11
-codeBox.Font = F.norm
-codeBox.ClearTextOnFocus = false
-codeBox.Parent = codeSection
-Instance.new("UICorner", codeBox).CornerRadius = UDim.new(0, 4)
+-- TextBox pake makeTextInput (Simetris sama Dropdown)
+local codeBox = S.Comp.makeTextInput(codeSection, "Enter Code", "", "Enter A Code...", function(v)
+    -- callback opsional kalau user selesai ngetik
+end)
 
--- ========================================================
--- DROPDOWN (TETAP KECIL DI KANAN)
--- ========================================================
+-- Dropdown
 local codeDropdown = S.Comp.makeDropdown(codeSection, "Available Codes", {"Fetching..."}, function(val)
     if val ~= "Fetching..." and val ~= "None" and val ~= "No Codes" then
         codeBox.Text = val
@@ -397,9 +387,7 @@ task.spawn(function()
     end
 end)
 
--- ========================================================
--- TOMBOL CLAIM CODE
--- ========================================================
+-- Tombol Claim Code (reset TextBox setelah claim)
 S.Comp.makeButton(codeSection, "Claim Code", function()
     local code = codeBox.Text
     if code ~= "" and code ~= "Enter A Code..." and code ~= "Fetching..." and code ~= "None" and code ~= "No Codes" then
@@ -408,11 +396,10 @@ S.Comp.makeButton(codeSection, "Claim Code", function()
         if RedeemCode then
             pcall(function() RedeemCode:InvokeServer(code) end)
         end
-        codeBox.Text = "" 
+        codeBox.Text = "" -- Reset ke placeholder
     end
 end)
-
--- (forceFixSection codeSection dihapus biar ga narik-narik kotaknya)
+task.defer(function() task.wait(0.1) forceFixSection(codeSection) end)
 
 -- ============================================================
 -- TAB SETTINGS
