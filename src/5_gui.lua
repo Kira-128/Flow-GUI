@@ -1,26 +1,18 @@
---[[
-============================================================
-  [5] GUI (Flow Hub v2.2)
-  - Size: 460x320
-  - Fix gethui crash on mobile
-  - Anti-Double GUI
-  - Separate Header for drag handle
-============================================================
-]]
+-- [5] GUI (Flow Hub v2.3) 
 
 local S = _G.STHAIN
 local C = S.Theme.Colors
 local I = S.Theme.Icons
 local F = S.Theme.Font
+local UIS = game:GetService("UserInputService")
 
--- FIX 1: Anti-Double GUI & Anti-Crash gethui
+-- Deteksi Platform
+local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled
+
+-- Anti-Crash gethui
 local parentGui
 local ok, hui = pcall(function() return gethui and gethui() end)
-if ok and hui then
-    parentGui = hui
-else
-    parentGui = game:GetService("CoreGui")
-end
+if ok and hui then parentGui = hui else parentGui = game:GetService("CoreGui") end
 
 local oldGui = parentGui:FindFirstChild("FlowHub")
 if oldGui then oldGui:Destroy() end
@@ -32,47 +24,69 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = parentGui
 
 -- ============================================================
--- FLOAT BUTTON
+-- FLOAT BUTTON (KOTAK + LOGO FULL, TANPA GARIS)
 -- ============================================================
 local floatBtn = Instance.new("TextButton")
+floatBtn.Name = "FloatBtn"
 floatBtn.Size = UDim2.new(0, 48, 0, 48)
 floatBtn.Position = UDim2.new(0, 30, 0.5, -24)
 floatBtn.Text = ""
 floatBtn.BackgroundTransparency = 1
 floatBtn.BorderSizePixel = 0
 floatBtn.AutoButtonColor = false
+floatBtn.Active = true
+floatBtn.ZIndex = 100
 floatBtn.Parent = gui
+
+local fBg = Instance.new("Frame")
+fBg.Name = "FloatBg"
+fBg.Size = UDim2.new(1, 0, 1, 0)
+fBg.BackgroundColor3 = C.bg2
+fBg.BackgroundTransparency = 0.1
+fBg.BorderSizePixel = 0
+fBg.Active = false
+fBg.ZIndex = 100
+fBg.Parent = floatBtn
+Instance.new("UICorner", fBg).CornerRadius = UDim.new(0, 8)
 
 local fIcon = Instance.new("ImageLabel")
 fIcon.Name = "FloatLogo"
-fIcon.Size = UDim2.new(1, 0, 1, 0)
+fIcon.Size = UDim2.new(1, 0, 1, 0) 
+fIcon.Position = UDim2.new(0, 0, 0, 0) 
 fIcon.BackgroundTransparency = 1
 fIcon.BorderSizePixel = 0
 fIcon.Image = I.logo
 fIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
 fIcon.ScaleType = Enum.ScaleType.Fit
-fIcon.Parent = floatBtn
+fIcon.Active = false
+fIcon.ZIndex = 101
+fIcon.Parent = fBg
 
--- DRAG FLOAT BUTTON
-local dragging, dragStart, startPos
+-- ============================================================
+-- FLOAT BUTTON DRAG (UIS GLOBAL - ANTI PUTUS)
+-- ============================================================
+local dragging = false
+local dragStart, startPos
+local hasMoved = false
+local DRAG_THRESHOLD = 5
+
 floatBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
+        hasMoved = false
         dragStart = input.Position
         startPos = floatBtn.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
     end
 end)
-floatBtn.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement
-    or input.UserInputType == Enum.UserInputType.Touch then
-        if dragging then
-            local delta = input.Position - dragStart
+
+UIS.InputChanged:Connect(function(input)
+    if not dragging then return end
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        local delta = input.Position - dragStart
+        if math.abs(delta.X) > DRAG_THRESHOLD or math.abs(delta.Y) > DRAG_THRESHOLD then
+            hasMoved = true
+        end
+        if hasMoved then
             floatBtn.Position = UDim2.new(
                 startPos.X.Scale, startPos.X.Offset + delta.X,
                 startPos.Y.Scale, startPos.Y.Offset + delta.Y
@@ -81,18 +95,30 @@ floatBtn.InputChanged:Connect(function(input)
     end
 end)
 
+UIS.InputEnded:Connect(function(input)
+    if not dragging then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+        if not hasMoved then
+            S.GUI.FloatBtn.Visible = false
+            S.GUI.MainFrame.Visible = true
+        end
+    end
+end)
+
 -- ============================================================
--- MAIN FRAME (Size: 460x320)
+-- MAIN FRAME (450x300)
 -- ============================================================
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 460, 0, 320)
-mainFrame.Position = UDim2.new(0.5, -230, 0.5, -160)
+mainFrame.Size = UDim2.new(0, 450, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
 mainFrame.BackgroundColor3 = C.panel
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Visible = false
+mainFrame.ClipsDescendants = true
 mainFrame.Parent = gui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
 
@@ -103,7 +129,11 @@ mStroke.Transparency = 0.3
 mStroke.Parent = mainFrame
 
 -- ============================================================
--- HEADER (Drag Handle)
+-- RESIZE HANDLE DIHAPUS (Digantikan Library)
+-- ============================================================
+
+-- ============================================================
+-- HEADER
 -- ============================================================
 local HEADER_H = 36
 
@@ -193,10 +223,10 @@ line1.Parent = mainFrame
 -- ============================================================
 -- SEARCH + TITLE + ACCENT LINE + GARIS 2
 -- ============================================================
-local ROW_Y = HEADER_H + 8  -- 44
+local ROW_Y = HEADER_H + 8
 
 local searchFrame = Instance.new("Frame")
-searchFrame.Size = UDim2.new(0, 160, 0, 26)
+searchFrame.Size = UDim2.new(0.35, 0, 0, 26)
 searchFrame.Position = UDim2.new(0, 10, 0, ROW_Y)
 searchFrame.BackgroundColor3 = C.bg2
 searchFrame.BackgroundTransparency = 0.1
@@ -229,7 +259,7 @@ searchBox.Parent = searchFrame
 local vDivider = Instance.new("Frame")
 vDivider.Name = "TitleDivider"
 vDivider.Size = UDim2.new(0, 2, 0, 18)
-vDivider.Position = UDim2.new(0, 180, 0, ROW_Y + 4)
+vDivider.Position = UDim2.new(0.35, 10, 0, ROW_Y + 4)
 vDivider.BackgroundColor3 = C.accent
 vDivider.BorderSizePixel = 0
 vDivider.Parent = mainFrame
@@ -237,7 +267,7 @@ Instance.new("UICorner", vDivider).CornerRadius = UDim.new(1, 0)
 
 local cTitle = Instance.new("TextLabel")
 cTitle.Size = UDim2.new(1, -200, 0, 26)
-cTitle.Position = UDim2.new(0, 190, 0, ROW_Y)
+cTitle.Position = UDim2.new(0.35, 20, 0, ROW_Y)
 cTitle.Text = "Combat"
 cTitle.TextColor3 = C.text
 cTitle.TextSize = 12
@@ -249,22 +279,29 @@ cTitle.Parent = mainFrame
 local line2 = Instance.new("Frame")
 line2.Name = "TitleLine"
 line2.Size = UDim2.new(1, -200, 0, 1)
-line2.Position = UDim2.new(0, 190, 0, ROW_Y + 28)
+line2.Position = UDim2.new(0.35, 20, 0, ROW_Y + 28)
 line2.BackgroundColor3 = C.stroke
 line2.BackgroundTransparency = 0.3
 line2.BorderSizePixel = 0
 line2.Parent = mainFrame
 
 -- ============================================================
--- SIDEBAR (TRANSPARAN)
+-- SIDEBAR (DENGAN SCROLLING & POSISI FIX)
 -- ============================================================
-local SIDEBAR_Y = ROW_Y + 38  -- 82
+local SIDEBAR_Y = ROW_Y + 38
 
-local sidebar = Instance.new("Frame")
+local sidebar = Instance.new("ScrollingFrame")
+sidebar.Name = "Sidebar"
 sidebar.Size = UDim2.new(0, 120, 1, -(SIDEBAR_Y + 10))
 sidebar.Position = UDim2.new(0, 10, 0, SIDEBAR_Y)
 sidebar.BackgroundTransparency = 1
 sidebar.BorderSizePixel = 0
+sidebar.ScrollBarThickness = 2
+sidebar.ScrollBarImageColor3 = C.accent
+sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
+sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+sidebar.ScrollingDirection = Enum.ScrollingDirection.Y
+sidebar.ClipsDescendants = true
 sidebar.Parent = mainFrame
 
 local sLayout = Instance.new("UIListLayout")
@@ -280,10 +317,11 @@ sPad.PaddingBottom = UDim.new(0, 4)
 sPad.Parent = sidebar
 
 -- ============================================================
--- CONTENT PANEL (TRANSPARAN) + CONTAINER
+-- CONTENT PANEL (RESPONSIF)
 -- ============================================================
 local contentPanel = Instance.new("Frame")
-contentPanel.Size = UDim2.new(1, -140, 1, -(SIDEBAR_Y + 10))
+contentPanel.Name = "ContentPanel"
+contentPanel.Size = UDim2.new(1, -140, 1, -(SIDEBAR_Y + 10)) 
 contentPanel.Position = UDim2.new(0, 130, 0, SIDEBAR_Y)
 contentPanel.BackgroundTransparency = 1
 contentPanel.BorderSizePixel = 0
@@ -317,4 +355,5 @@ S.GUI = {
     SearchBox = searchBox,
     MinBtn = minBtn,
     CloseBtn = nil,
+    IsMobile = isMobile,
 }
