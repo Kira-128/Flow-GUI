@@ -1,4 +1,3 @@
--- [6] LIBRARY
 local S = _G.STHAIN
 local C = S.Theme.Colors
 local F = S.Theme.Font
@@ -8,6 +7,27 @@ local ITEM_H = 34
 local HEADER_H = 30
 local CARD_BG = C.bg3
 local CARD_TRANS = 0.15
+
+-- ============================================================
+-- TOGGLE REGISTRY (Buat Refresh Config)
+-- ============================================================
+local ToggleRegistry = {}
+
+function Lib.RefreshAll()
+    for _, entry in pairs(ToggleRegistry) do
+        local path = entry.path
+        local currentVal = nil
+        
+        if S.Config then
+            local cat = S.Config[path[1]]
+            if cat then currentVal = cat[path[2]] end
+        end
+        
+        if currentVal ~= nil and entry.setState then
+            entry.setState(currentVal, true)
+        end
+    end
+end
 
 -- ============================================================
 -- HELPER: Recalculate section height
@@ -130,9 +150,9 @@ function Lib.makeSection(parent, title, defaultOpen)
 end
 
 -- ============================================================
--- TOGGLE
+-- TOGGLE (WITH REGISTRY)
 -- ============================================================
-function Lib.makeToggle(parent, name, default, callback)
+function Lib.makeToggle(parent, name, default, callback, configPath)
     local f = Instance.new("Frame")
     f.Name = "Toggle_" .. name
     f.Size = UDim2.new(1, 0, 0, ITEM_H)
@@ -181,6 +201,15 @@ function Lib.makeToggle(parent, name, default, callback)
     end
 
     b.MouseButton1Click:Connect(function() setState(not state, false) end)
+    
+    -- 🔥 TAMBAHIN KE REGISTRY (Kalau configPath dikasih)
+    if configPath then
+        table.insert(ToggleRegistry, {
+            path = configPath,
+            setState = setState
+        })
+    end
+    
     return setState
 end
 
@@ -741,6 +770,7 @@ function Lib.attachResizeHandle(mainFrame)
     handleLayer.BorderSizePixel = 0
     handleLayer.ClipsDescendants = false
     handleLayer.ZIndex = 9998
+    handleLayer.Active = false -- ⬅️ PENTING: Biar ga ngeblok klik game
     handleLayer.Parent = mainFrame.Parent   -- ScreenGui
 
     -- ============================================================
@@ -895,20 +925,20 @@ function Lib.attachResizeHandle(mainFrame)
 
     -- render loop: cek visibility MainFrame
     local renderConn = RunService.RenderStepped:Connect(function()
-    if destroyed then return end
-    if not mainFrame.Parent then
-        resizeHandle.Visible = false
-        return
-    end
-    
-    if not mainFrame.Visible then
-        resizeHandle.Visible = false
-        isShowing = false
-        if hideTimer then pcall(task.cancel, hideTimer) hideTimer = nil end
-    else
-        updateHandlePosition()
-    end
-end)
+        if destroyed then return end
+        if not mainFrame.Parent then
+            resizeHandle.Visible = false
+            return
+        end
+        
+        if not mainFrame.Visible then
+            resizeHandle.Visible = false
+            isShowing = false
+            if hideTimer then pcall(task.cancel, hideTimer) hideTimer = nil end
+        else
+            updateHandlePosition()
+        end
+    end)
 
     -- cleanup
     local function cleanup()
