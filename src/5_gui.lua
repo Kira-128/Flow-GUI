@@ -41,6 +41,7 @@ floatBtn.AutoButtonColor = false
 floatBtn.Active = true
 floatBtn.ZIndex = 100
 floatBtn.Parent = gui
+floatBtn.Visible = false
 
 local fBg = Instance.new("Frame")
 fBg.Name = "FloatBg"
